@@ -520,34 +520,56 @@ function buildAtom(shells, color){
   holo.appendChild(atom);
 }
 /* ---- real-form sample photos (Wikimedia Commons, fetched on click) ---- */
+const WIKI_FIX = {80: "Mercury (element)"}; // plain names that don't lead to the element article
+const LOCAL_PHOTOS = {}; // atomic number -> file in photos/ (hand-made artwork takes priority over Wikipedia)
 let photoAbort = null;
-function loadPhoto(name){
+function loadPhoto(name, num){
   if (photoAbort) photoAbort.abort();
   photoAbort = (typeof AbortController === 'function') ? new AbortController() : null;
   const signal = photoAbort ? photoAbort.signal : undefined;
   const box = document.getElementById('photoBox');
   if (!box) return;
   box.innerHTML = '<span class="photo-loading">retrieving sample photo…</span>';
-  const url = 'https://en.wikipedia.org/w/api.php?action=query&titles=' + encodeURIComponent(name)
-            + '&prop=pageimages&format=json&origin=*&pithumbsize=640';
-  fetch(url, {signal})
-    .then(r => r.json())
-    .then(d => {
-      const pages = d.query && d.query.pages;
-      const page = pages && pages[Object.keys(pages)[0]];
-      const thumb = page && page.thumbnail && page.thumbnail.source;
-      if (!thumb) throw new Error('NO_IMAGE');
-      box.innerHTML = '<img src="' + thumb + '" alt="Sample of ' + name + '" loading="lazy">'
-        + '<span class="credit"><a href="https://en.wikipedia.org/wiki/' + encodeURIComponent(name) + '" target="_blank" rel="noopener">photo · Wikipedia</a></span>';
-    })
-    .catch(err => {
-      if (err && err.name === 'AbortError') return;
-      if (err && err.message === 'NO_IMAGE'){
-        box.innerHTML = '<span class="photo-none">No sample photo exists — this element is too rare, dangerous or short-lived to have been photographed.</span>';
-      } else {
-        box.innerHTML = '<span class="photo-none">Sample photos load from Wikipedia — couldn\u2019t reach it (offline?).</span>';
-      }
-    });
+  const local = LOCAL_PHOTOS[num];
+  if (local && typeof Image === 'function'){
+    const img = new Image();
+    img.onload = ()=>{
+      box.innerHTML = '';
+      img.alt = 'Sample of ' + name;
+      box.appendChild(img);
+      const c = document.createElement('span');
+      c.className = 'credit';
+      c.textContent = 'custom artwork';
+      box.appendChild(c);
+    };
+    img.onerror = ()=> apiPhoto();
+    img.src = local;
+    return;
+  }
+  apiPhoto();
+  function apiPhoto(){
+    const title = WIKI_FIX[num] || name;
+    const url = 'https://en.wikipedia.org/w/api.php?action=query&titles=' + encodeURIComponent(title)
+              + '&prop=pageimages&format=json&origin=*&pithumbsize=640';
+    fetch(url, {signal})
+      .then(r => r.json())
+      .then(d => {
+        const pages = d.query && d.query.pages;
+        const page = pages && pages[Object.keys(pages)[0]];
+        const thumb = page && page.thumbnail && page.thumbnail.source;
+        if (!thumb) throw new Error('NO_IMAGE');
+        box.innerHTML = '<img src="' + thumb + '" alt="Sample of ' + name + '" loading="lazy">'
+          + '<span class="credit"><a href="https://en.wikipedia.org/wiki/' + encodeURIComponent(title) + '" target="_blank" rel="noopener">photo · Wikipedia</a></span>';
+      })
+      .catch(err => {
+        if (err && err.name === 'AbortError') return;
+        if (err && err.message === 'NO_IMAGE'){
+          box.innerHTML = '<span class="photo-none">No sample photo exists — this element is too rare, dangerous or short-lived to have been photographed.</span>';
+        } else {
+          box.innerHTML = '<span class="photo-none">Sample photos load from Wikipedia — couldn\u2019t reach it (offline?).</span>';
+        }
+      });
+  }
 }
 function openHolo(num){
   currentIdx = E.findIndex(e=>e[0]===num);
@@ -584,7 +606,7 @@ function openHolo(num){
   overlay.classList.remove('show','closing');
   void overlay.offsetWidth;
   overlay.classList.add('show');
-  loadPhoto(name);
+  loadPhoto(name, n);
   document.body.style.overflow='hidden';
 }
 function closeHolo(){
