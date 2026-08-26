@@ -78,9 +78,10 @@
   .el:hover{transform:translateY(-3px) scale(1.06); z-index:5; box-shadow:0 8px 22px rgba(0,0,0,.5), 0 0 18px color-mix(in srgb, var(--c) 55%, transparent); border-color:var(--c)}
   .el.dim{opacity:.15; filter:saturate(.2)}
   .gap{
-    display:flex; align-items:center; justify-content:center;
+    display:flex; align-items:center; justify-content:center; cursor:pointer;
     font-size:.55rem; color:var(--dim); border:1px dashed #22314e; border-radius:6px; text-align:center; line-height:1.5;
   }
+  .gap:hover{border-color:#7dd3fc; color:#7dd3fc}
   .flabel{align-self:center; justify-self:end; font-size:.6rem; color:var(--dim); padding-right:6px; letter-spacing:.1em}
   /* ============ HOLOGRAM OVERLAY ============ */
   #overlay{
@@ -402,10 +403,14 @@ E.forEach(el=>{
   tiles[num] = d;
 });
 /* placeholders + f-block labels */
-const ph1 = document.createElement('div'); ph1.className='gap'; ph1.style.gridRow=6; ph1.style.gridColumn=3; ph1.innerHTML='57–<br>71';
-const ph2 = document.createElement('div'); ph2.className='gap'; ph2.style.gridRow=7; ph2.style.gridColumn=3; ph2.innerHTML='89–<br>103';
-const l1 = document.createElement('div'); l1.className='flabel'; l1.style.gridRow=9; l1.textContent='LAN';
-const l2 = document.createElement('div'); l2.className='flabel'; l2.style.gridRow=10; l2.textContent='ACT';
+const ph1 = document.createElement('div'); ph1.className='gap'; ph1.style.gridRow=6; ph1.style.gridColumn=3; ph1.innerHTML='57–71<br>below ↓';
+const ph2 = document.createElement('div'); ph2.className='gap'; ph2.style.gridRow=7; ph2.style.gridColumn=3; ph2.innerHTML='89–103<br>below ↓';
+const l1 = document.createElement('div'); l1.className='flabel'; l1.style.gridRow=9; l1.textContent='LAN →';
+const l2 = document.createElement('div'); l2.className='flabel'; l2.style.gridRow=10; l2.textContent='ACT →';
+ph1.title = 'Lanthanides — tap to jump to them';
+ph2.title = 'Actinides — tap to jump to them';
+ph1.addEventListener('click', ()=> tiles[57].scrollIntoView({behavior:'smooth', block:'center'}));
+ph2.addEventListener('click', ()=> tiles[89].scrollIntoView({behavior:'smooth', block:'center'}));
 table.append(ph1, ph2, l1, l2);
 
 /* ---- legend ---- */
