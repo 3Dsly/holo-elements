@@ -521,7 +521,7 @@ function buildAtom(shells, color){
 }
 /* ---- real-form sample photos (Wikimedia Commons, fetched on click) ---- */
 const WIKI_FIX = {80: "Mercury (element)"}; // plain names that don't lead to the element article
-const LOCAL_PHOTOS = {}; // atomic number -> file in photos/ (hand-made artwork takes priority over Wikipedia)
+const LOCAL_PHOTOS = {80: "photos/hg.jpg"}; // atomic number -> file in photos/ (hand-made artwork takes priority over Wikipedia)
 let photoAbort = null;
 function loadPhoto(name, num){
   if (photoAbort) photoAbort.abort();
